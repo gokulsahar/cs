@@ -1,5 +1,5 @@
 """
-Pocket Lawyer - Indian Legal Assistant
+Pocket Lawyer - Indian Legal Assistant POC
 Simple RAG chatbot for legal questions with citations
 """
 
@@ -38,7 +38,7 @@ CRITICAL RULES:
 2. Always cite sources in this format: [Act Name, Section X]
 3. Use simple, plain English - avoid legal jargon
 4. If you don't find relevant information in context, say "I don't have enough information in my knowledge base to answer this accurately."
-5. Add this disclaimer at the end: " This is general information only, not legal advice. Consult a lawyer for your specific situation."
+5. Add this disclaimer at the end: "⚠️ This is general information only, not legal advice. Consult a lawyer for your specific situation."
 
 TONE: Helpful, clear, and citizen-friendly"""
 
@@ -50,13 +50,13 @@ def load_pdfs_from_folder(folder_path="./data/acts"):
     if not folder.exists():
         print(f"Creating data folder: {folder_path}")
         folder.mkdir(parents=True, exist_ok=True)
-        print(f"  Please add PDF files to {folder_path}")
+        print(f"⚠️  Please add PDF files to {folder_path}")
         return 0
     
     pdf_files = list(folder.glob("*.pdf"))
     
     if not pdf_files:
-        print(f"  No PDF files found in {folder_path}")
+        print(f"⚠️  No PDF files found in {folder_path}")
         return 0
     
     documents = []
@@ -156,9 +156,9 @@ def chat_with_rag(message, history):
     try:
         count = collection.count()
         if count == 0:
-            return " No documents loaded yet. Please add PDF files to the ./data/acts folder and restart the app."
+            return "⚠️ No documents loaded yet. Please add PDF files to the ./data/acts folder and restart the app."
     except:
-        return " Database not initialized. Please check the setup."
+        return "⚠️ Database not initialized. Please check the setup."
     
     # Retrieve relevant context
     context, sources = retrieve_context(message, top_k=5)
@@ -193,7 +193,7 @@ Please answer the question using ONLY the information from the context above. In
         
         # Add sources at the end
         if sources:
-            answer += f"\n\n **Sources consulted:** {', '.join(sources)}"
+            answer += f"\n\n📚 **Sources consulted:** {', '.join(sources)}"
         
         return answer
         
@@ -209,8 +209,8 @@ print("\nInitializing database...")
 num_docs = load_pdfs_from_folder()
 
 if num_docs == 0:
-    print("\n  WARNING: No documents loaded!")
-    print(" Add PDF files to: ./data/acts/")
+    print("\n⚠️  WARNING: No documents loaded!")
+    print("📁 Add PDF files to: ./data/acts/")
     print("   Then restart the app.\n")
 else:
     print(f"\n✓ Ready! Loaded {num_docs} document chunks")
@@ -226,7 +226,7 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Pocket Lawyer") as demo:
     
     Ask questions about Indian legal matters in plain English. Get answers with citations from legal documents.
     
-     **Disclaimer:** This provides general information only, not legal advice. Consult a qualified lawyer for your specific situation.
+    ⚠️ **Disclaimer:** This provides general information only, not legal advice. Consult a qualified lawyer for your specific situation.
     """)
     
     with gr.Row():
@@ -259,10 +259,10 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Pocket Lawyer") as demo:
             )
             
             gr.Markdown(f"""
-            ###  Database Status
+            ### 📊 Database Status
             **Documents loaded:** {num_docs} chunks
             
-            ###  Setup
+            ### 🔧 Setup
             1. Add PDFs to `./data/acts/`
             2. Set `ANTHROPIC_API_KEY` in `.env`
             3. Run: `python app.py`
@@ -280,7 +280,7 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Pocket Lawyer") as demo:
 # Launch the app
 if __name__ == "__main__":
     demo.launch(
-        server_name="127.0.0.1",  # Local only
+        server_name="0.0.0.0",  # Allow external access
         server_port=7860,
-        share=False  # Set to True to get public link for demo
+        share=True  # Create public link (works better on some systems)
     )
