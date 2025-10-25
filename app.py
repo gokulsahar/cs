@@ -8,6 +8,7 @@ import gradio as gr
 from anthropic import Anthropic
 import chromadb
 from chromadb.utils import embedding_functions
+from chromadb.config import Settings
 from pathlib import Path
 import PyPDF2
 from dotenv import load_dotenv
@@ -18,8 +19,11 @@ load_dotenv()
 # Initialize clients
 anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-# Initialize ChromaDB (local, file-based)
-chroma_client = chromadb.PersistentClient(path="./chroma_db")
+# Initialize ChromaDB (local, file-based) with telemetry disabled
+chroma_client = chromadb.PersistentClient(
+    path="./chroma_db",
+    settings=Settings(anonymized_telemetry=False)
+)
 sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
     model_name="all-MiniLM-L6-v2"  # Small, fast, free
 )
@@ -52,6 +56,16 @@ def load_pdfs_from_folder(folder_path="./data/acts"):
         folder.mkdir(parents=True, exist_ok=True)
         print(f"⚠️  Please add PDF files to {folder_path}")
         return 0
+    
+    # Check if collection already has data
+    try:
+        existing_count = collection.count()
+        if existing_count > 0:
+            print(f"✓ Database already has {existing_count} chunks loaded")
+            print("  Skipping PDF loading (delete chroma_db folder to reload)")
+            return existing_count
+    except:
+        pass
     
     pdf_files = list(folder.glob("*.pdf"))
     
@@ -233,8 +247,7 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Pocket Lawyer") as demo:
         with gr.Column(scale=3):
             chatbot = gr.Chatbot(
                 height=500,
-                show_label=False,
-                avatar_images=(None, "⚖️")
+                show_label=False
             )
             
             with gr.Row():
@@ -282,5 +295,5 @@ if __name__ == "__main__":
     demo.launch(
         server_name="0.0.0.0",  # Allow external access
         server_port=7860,
-        share=True  # Create public link (works better on some systems)
+        share=False  
     )
