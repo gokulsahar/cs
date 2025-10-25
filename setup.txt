@@ -1,0 +1,16 @@
+py -3.11 -m venv venv
+
+
+winget install --id Python.Python.3.11 -e
+# after install:
+py -3.11 -m venv poketLawyer
+.\poketLawyer\Scripts\activate
+python -V
+
+
+
+
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+
+pip install -r requirements.txt
