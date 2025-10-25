@@ -283,7 +283,7 @@ def call_claude_with_retry(prompt, system_prompt, max_tokens=800, temperature=0.
     return None, "Please try again in a moment."
 
 
-def chat_with_rag(message, history):
+def chat_with_rag(message, history, translate_tamil=False):
     """Main chat function with RAG"""
     
     try:
@@ -308,10 +308,13 @@ Question: {message}
 
 Provide a SHORT answer (2-3 sentences) with precise citations including section numbers."""
     
+    if translate_tamil:
+        user_prompt += "\n\nIMPORTANT: Translate your entire answer to Tamil. Keep citations in English format [Source: Act Name, Section X] but translate everything else to Tamil."
+    
     answer, error = call_claude_with_retry(
         prompt=user_prompt,
         system_prompt=SYSTEM_PROMPT,
-        max_tokens=800,
+        max_tokens=1200 if translate_tamil else 800,
         temperature=0.2
     )
     
@@ -400,7 +403,9 @@ with gr.Blocks(css=custom_css, title="Pocket Lawyer", theme=gr.themes.Soft()) as
                 )
                 submit = gr.Button("Send", variant="primary", scale=1, size="lg")
             
-            clear = gr.Button("Clear Chat", variant="secondary", size="sm")
+            with gr.Row():
+                tamil_checkbox = gr.Checkbox(label="Respond in Tamil", value=False)
+                clear = gr.Button("Clear Chat", variant="secondary", size="sm")
         
         with gr.Column(scale=3):
             gr.Markdown("### Example Questions")
@@ -414,19 +419,19 @@ with gr.Blocks(css=custom_css, title="Pocket Lawyer", theme=gr.themes.Soft()) as
                 label=""
             )
     
-    def respond(message, chat_history):
+    def respond(message, chat_history, tamil_mode):
         if not message.strip():
-            return chat_history, chat_history
+            return "", chat_history
         
-        bot_message = chat_with_rag(message, chat_history)
+        bot_message = chat_with_rag(message, chat_history, tamil_mode)
         chat_history.append((message, bot_message))
         return "", chat_history
     
     def clear_chat():
-        return [], []
+        return "", []
     
-    msg.submit(respond, [msg, chatbot], [msg, chatbot])
-    submit.click(respond, [msg, chatbot], [msg, chatbot])
+    msg.submit(respond, [msg, chatbot, tamil_checkbox], [msg, chatbot])
+    submit.click(respond, [msg, chatbot, tamil_checkbox], [msg, chatbot])
     clear.click(clear_chat, None, [msg, chatbot])
 
 if __name__ == "__main__":
