@@ -362,6 +362,7 @@ with gr.Blocks(css=custom_css, title="Pocket Lawyer", theme=gr.themes.Soft()) as
         <div class="header-text">
             <h1 style="margin: 0; font-size: 2.5em;">Pocket Lawyer</h1>
             <p style="margin: 10px 0 0 0; font-size: 1.2em;">Indian Legal Information Assistant</p>
+            <p style="margin: 10px 0 0 0; font-size: 0.8em;">By Gokul Sahar S</p>
         </div>
     """)
     
